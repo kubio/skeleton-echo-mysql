@@ -1,0 +1,33 @@
+version: '2'
+
+volumes:
+  mysql-data:
+    driver: 'local'
+
+services:
+  goapp:
+    build: ./goapp
+    ports:
+      - 5000:5000
+    links:
+      - mysql
+    volumes:
+      - ./goapp:/go/src/app
+    depends_on:
+      - mysql
+    tty: true
+    command: bash -c "/go/bin/godo server --watch && go-wrapper run main.go"
+    env_file:
+      - mysql.env
+
+  mysql:
+    build: ./mysql
+    ports:
+      - 5306:3306
+    volumes:
+      - ./mysql/my.cnf:/etc/mysql/my.cnf
+      - ./mysql/init.d:/docker-entrypoint-initdb.d
+      - mysql-data:/var/lib/mysql
+    env_file:
+      - mysql.env
+
